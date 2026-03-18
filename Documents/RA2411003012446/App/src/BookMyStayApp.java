@@ -1,85 +1,57 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
-abstract class Room {
-    private String type;
-    private int beds;
-    private double price;
+class Reservation {
 
-    public Room(String type, int beds, double price) {
-        this.type = type;
-        this.beds = beds;
-        this.price = price;
+    private String guestName;
+    private String roomType;
+
+    public Reservation(String guestName, String roomType) {
+        this.guestName = guestName;
+        this.roomType = roomType;
     }
 
-    public String getType() {
-        return type;
+    public String getGuestName() {
+        return guestName;
     }
 
-    public void displayDetails() {
-        System.out.println("Room Type: " + type);
-        System.out.println("Beds: " + beds);
-        System.out.println("Price: ₹" + price);
-    }
-}
-
-class SingleRoom extends Room {
-    public SingleRoom() {
-        super("Single Room", 1, 1500);
-    }
-}
-
-class DoubleRoom extends Room {
-    public DoubleRoom() {
-        super("Double Room", 2, 2500);
-    }
-}
-
-class SuiteRoom extends Room {
-    public SuiteRoom() {
-        super("Suite Room", 3, 5000);
-    }
-}
-
-class RoomInventory {
-    private Map<String, Integer> availabilityMap = new HashMap<>();
-
-    public RoomInventory() {
-        availabilityMap.put("Single Room", 5);
-        availabilityMap.put("Double Room", 0); // intentionally unavailable
-        availabilityMap.put("Suite Room", 2);
+    public String getRoomType() {
+        return roomType;
     }
 
-    public int getAvailability(String roomType) {
-        return availabilityMap.getOrDefault(roomType, 0);
+    public void display() {
+        System.out.println("Guest: " + guestName + " | Requested: " + roomType);
     }
 }
 
 
-class SearchService {
+class BookingQueue {
 
-    private RoomInventory inventory;
+    private Queue<Reservation> queue;
 
-    public SearchService(RoomInventory inventory) {
-        this.inventory = inventory;
+    public BookingQueue() {
+        queue = new LinkedList<>();
     }
 
 
-    public void searchAvailableRooms(Room[] rooms) {
+    public void addRequest(Reservation reservation) {
+        queue.offer(reservation);
+        System.out.println("Request added for " + reservation.getGuestName());
+    }
 
-        System.out.println("=== Available Rooms ===\n");
 
-        for (Room room : rooms) {
+    public void displayQueue() {
+        System.out.println("\n=== Booking Request Queue ===");
 
-            int available = inventory.getAvailability(room.getType());
-
-            // Validation: show only available rooms
-            if (available > 0) {
-                room.displayDetails();
-                System.out.println("Available: " + available + "\n");
-            }
+        for (Reservation r : queue) {
+            r.display();
         }
+    }
+
+
+    public Reservation getNextRequest() {
+        return queue.peek(); // No removal yet
     }
 }
 
@@ -88,22 +60,18 @@ public class BookMyStayApp {
 
     public static void main(String[] args) {
 
-        // Initialize inventory
-        RoomInventory inventory = new RoomInventory();
+        // Initialize booking queue
+        BookingQueue bookingQueue = new BookingQueue();
 
-        // Create room domain objects
-        Room[] rooms = {
-                new SingleRoom(),
-                new DoubleRoom(),
-                new SuiteRoom()
-        };
+        // Guests submit booking requests
+        bookingQueue.addRequest(new Reservation("Alice", "Single Room"));
+        bookingQueue.addRequest(new Reservation("Bob", "Suite Room"));
+        bookingQueue.addRequest(new Reservation("Charlie", "Double Room"));
 
-        // Initialize search service
-        SearchService searchService = new SearchService(inventory);
+        // Display queued requests
+        bookingQueue.displayQueue();
 
-        // Guest performs search
-        searchService.searchAvailableRooms(rooms);
-
-        System.out.println("Search completed. No changes made to inventory.");
+        System.out.println("\nRequests are stored in arrival order (FIFO).");
+        System.out.println("No rooms allocated yet. Inventory unchanged.");
     }
 }
